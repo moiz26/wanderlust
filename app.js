@@ -3,7 +3,7 @@ const app = express();
 const mongoose = require("mongoose");
 const Listing = require("./models/listing.js");
 const path = require("path");
-
+const methodOverride = require("method-override");
 
 // conecting  to mongoDB database
  const MONGO_URL = "mongodb://127.0.0.1:27017/wanderlust";
@@ -25,6 +25,7 @@ app.set("view egine", "ejs");
 app.set("views", path.join(__dirname,"views"));
 // to parse the data 
 app.use(express.urlencoded({ extended: true }));
+app.use(methodOverride("_method")); //to use put/delete method coz html form can handel only get and post requests.
 
 // INDEX ROUTE
 app.get("/listings", async (req,res) =>{
@@ -57,6 +58,43 @@ app.get("/listings/:id", async (req,res) =>{
         return res.send("Listing not found");
     }
     res.render("listings/show.ejs",{listingData});
+});
+
+// Route to get/render the edit form
+app.get("/listings/:id/edit", async (req,res) =>{
+    let {id} = req.params;
+    const listingData = await Listing.findById(id);
+    res.render("listings/edit.ejs", {listingData})
+});
+
+// Route to update the listing 
+app.put("/listings/:id", async (req,res) =>{
+    let {id} = req.params;
+    let  editData = req.body.listing;
+    // Spread operator doesn’t work well with nested objects(EX "IMG" in our schema).
+    // we have to manually structure image
+    editData.image = {
+        url: editData.image,
+        filename: "listingimage"
+    };
+    await Listing.findByIdAndUpdate(id, editData,{
+        new: true,
+        runValidators: true
+    }
+    )
+    res.redirect(`/listings/${id}`);
+
+});
+
+// delete Route
+app.delete("/listings/:id",async  (req,res) =>{
+    let {id} = req.params;
+    let deletedListing = await Listing.findByIdAndDelete(id);
+    console.log(deletedListing);
+    if (!deletedListing) {
+        return res.send("Listing not found ❌");
+    }
+    res.redirect("/listings");
 })
 
 //route for test only
