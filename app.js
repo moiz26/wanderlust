@@ -4,6 +4,7 @@ const mongoose = require("mongoose");
 const Listing = require("./models/listing.js");
 const path = require("path");
 const methodOverride = require("method-override");
+const ejsMate = require("ejs-mate");
 
 // conecting  to mongoDB database
  const MONGO_URL = "mongodb://127.0.0.1:27017/wanderlust";
@@ -20,12 +21,14 @@ const methodOverride = require("method-override");
 main();
 
 //setting view engine to ejs
-app.set("view egine", "ejs");
+app.set("view engine", "ejs");
 // setting path to views folder
 app.set("views", path.join(__dirname,"views"));
 // to parse the data 
 app.use(express.urlencoded({ extended: true }));
 app.use(methodOverride("_method")); //to use put/delete method coz html form can handel only get and post requests.
+app.engine("ejs", ejsMate);
+app.use(express.static(path.join(__dirname,"/public")));
 
 // INDEX ROUTE
 app.get("/listings", async (req,res) =>{
@@ -50,7 +53,7 @@ app.post("/listings", async (req,res) =>{
 app.get("/listings/:id", async (req,res) =>{
     let {id} = req.params;
     if(!mongoose.Types.ObjectId.isValid(id)){ //check if the id is vlaid or not
-        return res.send("Invalid ID formate");
+        return res.send("Invalid ID format");
     }
     const listingData = await Listing.findById(id);
 
