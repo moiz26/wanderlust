@@ -5,7 +5,9 @@ const Listing = require("./models/listing.js");
 const path = require("path");
 const methodOverride = require("method-override");
 const ejsMate = require("ejs-mate");
-
+const wrapAsync = require("./utils/wrapAsync.js")
+const ExpressError = require("./utils/ExpressError.js");
+const validateSchema = require("./validationSchema.js");
 // conecting  to mongoDB database
  const MONGO_URL = "mongodb://127.0.0.1:27017/wanderlust";
  async function main() {
@@ -30,6 +32,17 @@ app.use(methodOverride("_method")); //to use put/delete method coz html form can
 app.engine("ejs", ejsMate);
 app.use(express.static(path.join(__dirname,"/public")));
 
+
+const validateListing  = (req, res, next)=>{
+    let {error} = validateSchema.validate(req.body);
+    if(error){
+        let errMsg = error.details.map((el) => el.message).join(",");
+        throw new ExpressError(400, errMsg);
+    }else{
+        next();
+    }
+}
+
 // INDEX ROUTE
 app.get("/listings", async (req,res) =>{
     const allListings = await Listing.find({}); //finding all the listings and sending/rendering them using index.ejs template
@@ -42,12 +55,12 @@ app.get("/listings/new", (req,res) =>{
     res.render("listings/addListing.ejs");
 });
 //b.Create(post) listing
-app.post("/listings", async (req,res) =>{
-    console.log(req.body);
-    let newListing = req.body.listing;
+app.post("/listings",validateListing, wrapAsync(async (req,res, next) =>{
+    const newListing = req.body.listing;
     await new Listing(newListing).save();
-    res.redirect("/listings");
-});
+    res.redirect("/listings") ;
+    console.log(req.body);
+}));
 
 // show route = to show/return the data of specific listing.
 app.get("/listings/:id", async (req,res) =>{
@@ -71,7 +84,7 @@ app.get("/listings/:id/edit", async (req,res) =>{
 });
 
 // Route to update the listing 
-app.put("/listings/:id", async (req,res) =>{
+app.put("/listings/:id", validateListing, async (req,res) =>{
     let {id} = req.params;
     let  editData = req.body.listing;
     // Spread operator doesn’t work well with nested objects(EX "IMG" in our schema).
@@ -99,6 +112,19 @@ app.delete("/listings/:id",async  (req,res) =>{
     }
     res.redirect("/listings");
 })
+
+
+app.use((req,res,next)=>{
+    next(new ExpressError(404, "Page Not Found!"));
+});
+
+app.use((err,req, res, next)=>{
+    let {statusCode = 500, message = "Something Went Wrong!"} = err;
+    // res.status(statusCode).send(message);
+    res.status(statusCode).render("error.ejs", {message})
+});
+
+
 
 //route for test only
 // app.get("/testListing", async (req,res) =>{
