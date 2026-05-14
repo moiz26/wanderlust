@@ -7,7 +7,10 @@ const methodOverride = require("method-override");
 const ejsMate = require("ejs-mate");
 const wrapAsync = require("./utils/wrapAsync.js")
 const ExpressError = require("./utils/ExpressError.js");
-const validateSchema = require("./validationSchema.js");
+const {validateSchema, reviewSchema} = require("./validationSchema.js");
+const Review = require("./models/review.js")
+
+
 // conecting  to mongoDB database
  const MONGO_URL = "mongodb://127.0.0.1:27017/wanderlust";
  async function main() {
@@ -32,9 +35,18 @@ app.use(methodOverride("_method")); //to use put/delete method coz html form can
 app.engine("ejs", ejsMate);
 app.use(express.static(path.join(__dirname,"/public")));
 
-
 const validateListing  = (req, res, next)=>{
     let {error} = validateSchema.validate(req.body);
+    if(error){
+        let errMsg = error.details.map((el) => el.message).join(",");
+        throw new ExpressError(400, errMsg);
+    }else{
+        next();
+    }
+}
+
+const validateReview  = (req, res, next)=>{
+    let {error} = reviewSchema.validate(req.body);
     if(error){
         let errMsg = error.details.map((el) => el.message).join(",");
         throw new ExpressError(400, errMsg);
@@ -68,7 +80,7 @@ app.get("/listings/:id", async (req,res) =>{
     if(!mongoose.Types.ObjectId.isValid(id)){ //check if the id is vlaid or not
         return res.send("Invalid ID format");
     }
-    const listingData = await Listing.findById(id);
+    const listingData = await Listing.findById(id).populate("reviews");
 
     if(!listingData){ //checks if the listing with the is available or not
         return res.send("Listing not found");
@@ -113,6 +125,42 @@ app.delete("/listings/:id",async  (req,res) =>{
     res.redirect("/listings");
 })
 
+// Reviews POST route
+app.post("/listings/:id/reviews",validateReview,wrapAsync(async(req, res)=>{
+
+    console.log("review route hit");
+
+    //accessing the lisintg using the id.   
+    let listing = await Listing.findById(req.params.id);
+    console.log(listing);
+
+
+    let newReview = new Review(req.body.review) ;
+    console.log(newReview);
+
+    //here "review" is from the "review form" which is present the "show.ejs"
+    // where we name input and textarea as "review[rating] and review[comment]"
+
+    // saving/puching newReivew in the "review" of the above fetched listing.
+    listing.reviews.push(newReview);
+
+    // saving new reviews
+    await newReview.save();
+    // saving/updating the listing with reviews.
+    await listing.save();
+    console.log("new review saved");
+
+    res.redirect(`/listings/${listing._id}`);
+}))  ;
+
+
+//Delete review route.
+app.delete("/listings/:id/reviews/:reviewId", wrapAsync(async(req, res)=>{
+    let{id, reviewId} = req.params;
+    await Listing.findByIdAndUpdate(id, {$pull:{reviews: reviewId}});
+    await Review.findByIdAndDelete(reviewId);
+    res.redirect(`/listings/${id}`);
+}));
 
 app.use((req,res,next)=>{
     next(new ExpressError(404, "Page Not Found!"));
@@ -123,6 +171,7 @@ app.use((err,req, res, next)=>{
     // res.status(statusCode).send(message);
     res.status(statusCode).render("error.ejs", {message})
 });
+
 
 
 
@@ -143,4 +192,4 @@ app.use((err,req, res, next)=>{
 
 app.listen(8080, () =>{
     console.log("Server is running at http://localhost:8080");
-})
+});

@@ -1,6 +1,6 @@
 const Joi = require("joi");
-const { join } = require("path");
-const { title } = require("process");
+
+// validation for listings.
 const validateSchema = Joi.object({
     listing : Joi.object({
         title: Joi.string().required(),
@@ -12,4 +12,16 @@ const validateSchema = Joi.object({
     }).required()
 });
 
-module.exports = validateSchema;
+
+// validation for reviews.
+const reviewSchema = Joi.object({
+    review: Joi.object({
+        rating: Joi.number().required().min(1).max(5),
+        comment: Joi.string().required()
+    }).required()
+});
+
+module.exports = {
+    validateSchema,
+    reviewSchema
+};
