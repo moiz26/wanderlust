@@ -1,7 +1,7 @@
 const Joi = require("joi");
 
 // validation for listings.
-const validateSchema = Joi.object({
+const valListingSchema = Joi.object({
     listing : Joi.object({
         title: Joi.string().required(),
         description: Joi.string().required(),
@@ -14,7 +14,7 @@ const validateSchema = Joi.object({
 
 
 // validation for reviews.
-const reviewSchema = Joi.object({
+const valReviewSchema = Joi.object({
     review: Joi.object({
         rating: Joi.number().required().min(1).max(5),
         comment: Joi.string().required()
@@ -22,6 +22,6 @@ const reviewSchema = Joi.object({
 });
 
 module.exports = {
-    validateSchema,
-    reviewSchema
+    valListingSchema,
+    valReviewSchema
 };

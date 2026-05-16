@@ -61,15 +61,16 @@
                 <div class="mb-3 col-md-4">
                     <label class="form-label">Price</label>
 
-                    <input
+                    <input 
                         name="listing[price]"
                         placeholder="Enter price"
-                        
+                        type="number"
                         class="form-control"
+                        min="0"
                         required
                     >
                     <div class="invalid-feedback">
-                        price must be valid!
+                        Price must be a valid number.
                     </div>
                 </div>
 
