@@ -43,7 +43,7 @@ router.post("/", isLoggedIn, validateListing, wrapAsync(async (req,res, next) =>
 
 
 // show route = to show/return the data of specific listing.
-router.get("/:id", isLoggedIn,  wrapAsync(async (req,res) =>{
+router.get("/:id",  wrapAsync(async (req,res) =>{
     let {id} = req.params;
     const listingData = await Listing.findById(id).populate("reviews");
     if(!listingData){
@@ -55,7 +55,7 @@ router.get("/:id", isLoggedIn,  wrapAsync(async (req,res) =>{
 
 
 // Route to get/render the edit form
-router.get("/:id/edit", wrapAsync( async (req,res) =>{
+router.get("/:id/edit", isLoggedIn,  wrapAsync( async (req,res) =>{
     let {id} = req.params;
     const listingData = await Listing.findById(id);
     if(!listingData){

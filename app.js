@@ -66,19 +66,10 @@ app.use(flash());
 app.use((req, res, next) =>{
   res.locals.success = req.flash("success"); //save messages with the key "success"(Here in req.flash "success" is the key) in the req.locals.successs(here success is just a variable) 
   res.locals.error = req.flash("error");
+  res.locals.currentUser = req.user;
   next(); //must call next else it will  stuck in this MW.
 })
 
-
-// app.get("/demouser",async (req,res) =>{
-//   let fakeUser = new User ({
-//     email: "student@gmail.com",
-//     username: "mooooo"
-//   });
-
-//  let registeredUser = await User.register(fakeUser, "helloworld");
-//   res.send(registeredUser);
-// });
 
 app.use("/listings", listingsRouter);
 app.use("/listings/:id/reviews", reviewsRouter)

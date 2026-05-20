@@ -1,5 +1,4 @@
 const mongoose =  require("mongoose");
-const { type } = require("node:os");
 const {Schema} = mongoose;
 const passportLocalMongoose = require("passport-local-mongoose").default;
 
