@@ -29,37 +29,46 @@
 
 <!-- reviews section -->
     <div class="col-8 offset-3 mb-3"> <hr>
-        <h4>Leave a review</h4><br>
-        <form method="post" action="/listings/<%= listingData._id %>/reviews" novalidate class="needs-validation">
-            <div class="mb-3 mt-3">
-                <label for="rating" class="form-label">Rating</label>
-                <input type="range" min="1" max="5" id="rating" name="review[rating]" class="form-range" >
-            </div>
-            <div class="mb-3 mt-3">
-                <label for="comment" class="form-label"> Comments</label>
-                <textarea name="review[comment]" id="comment" cols="30" rows="5" class="form-control" required></textarea>
-
-                <div class="invalid-feedback">
-                    Please add some comments for review!
+        <% if(currentUser) { %>
+            <h4>Leave a review</h4><br>
+            <form method="post" action="/listings/<%= listingData._id %>/reviews" novalidate class="needs-validation">
+                <div class="mb-3 mt-3">
+                    <label for="rating" class="form-label">Rating</label>
+                    <input type="range" min="1" max="5" id="rating" name="review[rating]" class="form-range" >
                 </div>
 
-            </div>
-            <button class="btn btn-outline-dark">Submit</button>
-        </form> <hr>
+                <div class="mb-3 mt-3">
+                    <label for="comment" class="form-label"> Comments</label>
+                    <textarea name="review[comment]" id="comment" cols="30" rows="5" class="form-control" required></textarea>
 
+                    <div class="invalid-feedback">
+                        Please add some comments for review!
+                    </div>
+
+                </div>
+                <button class="btn btn-outline-dark">Submit</button>
+            </form>
+        <% } %>
+        
         <p><b>All Reviews</b></p>
         <div class="row">
+            <% if(listingData.reviews.length === 0){ %>
+                <p>No reviews to show</p>
+            <% } %>
+
             <% for(review of listingData.reviews){ %>
                 <div class=" col-md-6 col-lg-4 mb-3">
                     <div class="card h-100">
                         <div class="card-body m-2">
-                            <h5 class="card-title"> <b> moiz </b></h5>
+                            <h5 class="card-title"> <b>@ <%= review.author.username %> </b></h5>
                             <p class="card-text"><%=review.comment%></p>
                             <p class="card-text"><%=review.rating%> star</p>
                         </div>
-                        <form class="m-2" method="post" action="/listings/<%=listingData._id%>/reviews/<%=review._id%>?_method=DELETE"  >
-                            <button class="btn btn-sm btn-dark"> Delete</button>
-                        </form>
+                        <% if(currentUser && currentUser._id.equals(review.author._id)){ %>
+                            <form class="m-2" method="post" action="/listings/<%=listingData._id%>/reviews/<%=review._id%>?_method=DELETE"  >
+                                <button class="btn btn-sm btn-dark"> Delete</button>
+                            </form>
+                        <% } %>
                     </div>
                 </div>
             <%}%>

@@ -33,7 +33,14 @@ router.post("/", isLoggedIn, validateListing, wrapAsync(async (req,res, next) =>
 // show route = to show/return the data of specific listing.
 router.get("/:id",  wrapAsync(async (req,res) =>{
     let {id} = req.params;
-    const listingData = await Listing.findById(id).populate("reviews").populate("owner");
+    const listingData = await Listing.findById(id)
+        .populate({
+            path:"reviews",
+            populate:{
+                path: "author",
+            },
+        })
+        .populate("owner");
     if(!listingData){
         req.flash("error", "Could not find the lisitng");
          return res.redirect("/listings");

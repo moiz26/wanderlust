@@ -1,4 +1,5 @@
 const Listing = require("./models/listing.js");
+const Review = require("./models/review.js");
 const ExpressError = require("./utils/ExpressError.js");
 const {valListingSchema, valReviewSchema} = require("./validationSchema.js");
 
@@ -23,8 +24,18 @@ module.exports.saveRedirectUrl = (req, res, next) =>{
 module.exports.isOwner = async(req,res,next) =>{
     let{id} = req.params;
     let listing = await Listing.findById(id);
-    if(!listing.owner.equals(res.locals.currentUser._id)){
+    if(!listing.owner.equals(req.user._id)){
         req.flash("error", "you don't have permission to edit!");
+        return res.redirect(`/listings/${id}`);
+    }
+    next();
+};
+
+module.exports.isReviewAuthor = async(req,res,next) =>{
+    let{id, reviewId} = req.params;
+    let review = await Review.findById(reviewId);
+    if(!review.author.equals(req.user._id)){
+        req.flash("error", "you are not the author of this reivew!");
         return res.redirect(`/listings/${id}`);
     }
     next();
