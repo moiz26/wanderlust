@@ -8,22 +8,24 @@
         <img src="<%=listingData.image.url%>" class="card-img-top show-img" alt="listing_image">
         <div class="card-body">
             <p class="card-text">
-                <%= listingData.description %> <br>
-                &#8377; <%= listingData.price.toLocaleString("en-IN") %> <br>
-                <%= listingData.location %> <br>
-                <%= listingData.country %> <br>
+                <p><i><%= listingData.owner? listingData.owner.username:"Unknown User"%></i></p> <br>
+                <p><%= listingData.description %></p> <br>
+                <p>&#8377; <%= listingData.price.toLocaleString("en-IN") %></p> <br>
+                <p><%= listingData.location %></p> <br>
+                <p><%= listingData.country %></p> <br>
             </p>
         </div>
     </div> <br>
 
-    <div class="btns">
-        <a href="/listings/<%= listingData._id %>/edit" class="btn btn-dark edit-btn col-1 offset-3"> Edit</a>
+    <% if(currentUser && currentUser._id.equals(listingData.owner._id)) { %>
+        <div class="btns">
+            <a href="/listings/<%= listingData._id %>/edit" class="btn btn-dark edit-btn col-1 offset-3"> Edit</a>
 
-
-        <form method="post" action="/listings/<%= listingData._id %>?_method=DELETE">
-            <button class="btn btn-dark offset-5">Delete</button>
-        </form>
-    </div>
+            <form method="post" action="/listings/<%= listingData._id %>?_method=DELETE">
+                <button class="btn btn-dark offset-5">Delete</button>
+            </form>
+        </div>
+    <% } %>
 
 <!-- reviews section -->
     <div class="col-8 offset-3 mb-3"> <hr>

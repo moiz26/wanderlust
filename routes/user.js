@@ -10,7 +10,7 @@ router.get("/signup", (req, res) =>{
     res.render("users/signup.ejs");
 })
 
-router.post("/signup",wrapAsync(async(req,res)=>{
+router.post("/signup",wrapAsync(async(req,res, next)=>{
     let {username, email, password} = req.body;
     try{
         const newUser = new User({
@@ -51,7 +51,8 @@ router.post(
 router.get("/logout", (req,res, next) =>{
     req.logout((err) =>{
         if(err){
-            return next(err);
+            return
+        next(err);
         }
         req.flash("success", "You are logged out!");
         res.redirect("/listings");

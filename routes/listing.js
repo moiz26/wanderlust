@@ -2,22 +2,9 @@ const express = require("express");
 const router = express.Router();
 // const mongoose = require("mongoose")
 const wrapAsync = require("../utils/wrapAsync");
-const ExpressError = require("../utils/ExpressError.js");
-const {valListingSchema, valReviewSchema} = require("../validationSchema.js");
 const Listing = require("../models/listing.js");
-const {isLoggedIn} = require("../middleware.js");
-
-
-
-const validateListing  = (req, res, next)=>{
-    let {error} = valListingSchema.validate(req.body);
-    if(error){
-        let errMsg = error.details.map((el) => el.message).join(",");
-        throw new ExpressError(400, errMsg);
-    }else{
-        next();
-    }
-}
+const {isLoggedIn, isOwner, validateListing} = require("../middleware.js");
+const { findById } = require("../models/review.js");
 
 // INDEX ROUTE
 router.get("/",wrapAsync( async (req,res) =>{
@@ -32,10 +19,11 @@ router.get("/new", isLoggedIn, (req,res) =>{
     res.render("listings/addListing.ejs");
 });
 
-
 //b.Create(post) listing
 router.post("/", isLoggedIn, validateListing, wrapAsync(async (req,res, next) =>{
     const newListing = req.body.listing;
+    newListing.owner = req.user._id;
+    console.log(newListing)
     await new Listing(newListing).save();
     req.flash("success", "New listing created!");
     res.redirect("/listings") ;
@@ -45,7 +33,7 @@ router.post("/", isLoggedIn, validateListing, wrapAsync(async (req,res, next) =>
 // show route = to show/return the data of specific listing.
 router.get("/:id",  wrapAsync(async (req,res) =>{
     let {id} = req.params;
-    const listingData = await Listing.findById(id).populate("reviews");
+    const listingData = await Listing.findById(id).populate("reviews").populate("owner");
     if(!listingData){
         req.flash("error", "Could not find the lisitng");
          return res.redirect("/listings");
@@ -53,9 +41,8 @@ router.get("/:id",  wrapAsync(async (req,res) =>{
     res.render("listings/show.ejs",{listingData});
 }));
 
-
 // Route to get/render the edit form
-router.get("/:id/edit", isLoggedIn,  wrapAsync( async (req,res) =>{
+router.get("/:id/edit", isLoggedIn, isOwner, wrapAsync( async (req,res) =>{
     let {id} = req.params;
     const listingData = await Listing.findById(id);
     if(!listingData){
@@ -66,7 +53,7 @@ router.get("/:id/edit", isLoggedIn,  wrapAsync( async (req,res) =>{
 }));
 
 // Route to update the listing 
-router.put("/:id", isLoggedIn, validateListing, wrapAsync(async (req,res) =>{
+router.put("/:id", isLoggedIn, isOwner, validateListing, wrapAsync(async (req,res) =>{
     let {id} = req.params;
     let  editData = req.body.listing;
     // Spread operator doesn’t work well with nested objects(EX "IMG" in our schema).
@@ -75,18 +62,14 @@ router.put("/:id", isLoggedIn, validateListing, wrapAsync(async (req,res) =>{
         url: editData.image,
         filename: "listingimage"
     };
-    await Listing.findByIdAndUpdate(id, editData,{
-        new: true,
-        runValidators: true
-    });
-    
+    await Listing.findByIdAndUpdate(id, editData,); 
     req.flash("success", "Listing updated!");
     res.redirect(`/listings/${id}`);
 
 }));
 
 // delete listing Route
-router.delete("/:id", isLoggedIn,  wrapAsync(async  (req,res) =>{
+router.delete("/:id", isLoggedIn, isOwner,  wrapAsync(async  (req,res) =>{
     let {id} = req.params;
     let deletedListing = await Listing.findByIdAndDelete(id);
     console.log(deletedListing);

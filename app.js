@@ -75,6 +75,16 @@ app.use("/listings", listingsRouter);
 app.use("/listings/:id/reviews", reviewsRouter)
 app.use("/",userLoginRouter)
 
+
+
+
+app.use((req,res,next)=>{
+  if(req.originalUrl.startsWith("/.well-known")){
+    return res.status(204).end();
+  }
+  next();
+})
+
 app.use((req,res,next)=>{
     next(new ExpressError(404, "Page Not Found!"));
 });
