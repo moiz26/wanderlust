@@ -1,3 +1,7 @@
+if(process.env.NODE_ENV != "production"){
+  require("dotenv").config();
+}
+
 const express = require("express");
 const app = express();
 const mongoose = require("mongoose");
@@ -9,6 +13,7 @@ const session = require("express-session");
 const flash = require("connect-flash");
 const passport = require("passport");
 const LocalStrategy = require("passport-local").Strategy;
+
 
 const User = require("./models/user.js");
 
@@ -76,7 +81,9 @@ app.use("/listings/:id/reviews", reviewsRouter)
 app.use("/",userLoginRouter)
 
 
-
+app.use((req,res,next) => {
+  console.log(req.method,"&&", req.originalUrl);
+})
 
 app.use((req,res,next)=>{
   if(req.originalUrl.startsWith("/.well-known")){
@@ -89,6 +96,7 @@ app.use((req,res,next)=>{
     next(new ExpressError(404, "Page Not Found!"));
 });
 
+//global error handler.
 app.use((err,req, res, next)=>{
   console.log(err);
     let {statusCode = 500, message = "Something Went Wrong!"} = err;

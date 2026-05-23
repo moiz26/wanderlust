@@ -108,3 +108,11 @@ body{
     padding-left: 0;
     padding-right: 0;
 }
+
+.rating-error{
+    display: none;
+}
+
+.was-validated fieldset:invalid ~ .rating-error{
+    display: block;
+}
