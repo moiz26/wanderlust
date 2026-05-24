@@ -24,7 +24,6 @@ router.route("/")
     wrapAsync(listingController.createListing)
 );
 
-
 // new form to Create 
 // a.get the from to add listings
 router.get("/new",

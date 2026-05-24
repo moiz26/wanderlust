@@ -109,10 +109,7 @@ body{
     padding-right: 0;
 }
 
-.rating-error{
-    display: none;
-}
-
-.was-validated fieldset:invalid ~ .rating-error{
-    display: block;
+#map { 
+    height: 400px;
+    width: 100vh;
 }

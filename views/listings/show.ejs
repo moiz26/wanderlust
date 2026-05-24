@@ -1,4 +1,8 @@
 <% layout("/layouts/boilerplate")%>
+<script>
+    const mapToken = "<%= process.env.MAP_TOKEN %>";
+    const listingCoordinates = <%- JSON.stringify(listingData) %>;
+</script>
 <div class="row mt-3 ">
     <div class="col-8 offset-3 mt-3">
         <h3><b> <%= listingData.title %> </b></h3>
@@ -32,7 +36,7 @@
     <% } %>
 
 <!-- reviews section -->
-    <div class="col-8 offset-3 mb-3"> <hr>
+    <div class="col-8 offset-3 mb-3">
         <% if(currentUser) { %>
             <h4>Leave a review</h4><br>
             <form method="post" action="/listings/<%= listingData._id %>/reviews" novalidate class="needs-validation">
@@ -105,5 +109,13 @@
                 </div>
             <%}%>
         </div>
+
+    </div>
+
+    <div class="col-6 offset-3 mb-3">
+        <h3>Where you'll be</h3>
+        <div id="map"></div>
     </div>
 </div>
+
+<script src="/js/map.js" ></script>
