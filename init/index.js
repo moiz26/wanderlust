@@ -18,9 +18,23 @@ main();
 
 const initDB = async () => {
     await Listing.deleteMany({}); //deleting existing data from the database.
-    initData.data = initData.data.map((obj) =>({...obj, owner:"6a0ddacc858c234fe45291d0"}))
+    initData.data = initData.data.map((obj) => ({
+        ...obj,
+        geometry: {
+            type: "Point",
+            coordinates: [
+                Number((Math.random() * 360 - 180).toFixed(6)),
+                Number((Math.random() * 180 - 90).toFixed(6))
+            ]
+        },
+        owner:"6a144256c54365ba143ac383"
+    }));
     await Listing.insertMany(initData.data);
     console.log("data was initialized");
 }
 
 initDB();
+
+
+
+      

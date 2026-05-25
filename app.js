@@ -81,17 +81,6 @@ app.use("/listings/:id/reviews", reviewsRouter)
 app.use("/",userLoginRouter)
 
 
-app.use((req,res,next) => {
-  console.log(req.method,"&&", req.originalUrl);
-})
-
-app.use((req,res,next)=>{
-  if(req.originalUrl.startsWith("/.well-known")){
-    return res.status(204).end();
-  }
-  next();
-})
-
 app.use((req,res,next)=>{
     next(new ExpressError(404, "Page Not Found!"));
 });
@@ -100,7 +89,6 @@ app.use((req,res,next)=>{
 app.use((err,req, res, next)=>{
   console.log(err);
     let {statusCode = 500, message = "Something Went Wrong!"} = err;
-    // res.status(statusCode).send(message);
     res.status(statusCode).render("error.ejs", {message})
 });
 
