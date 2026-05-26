@@ -10,6 +10,7 @@ const methodOverride = require("method-override");
 const ejsMate = require("ejs-mate");
 const ExpressError = require("./utils/ExpressError.js");
 const session = require("express-session");
+const MongoStore = require("connect-mongo").default
 const flash = require("connect-flash");
 const passport = require("passport");
 const LocalStrategy = require("passport-local").Strategy;
@@ -23,11 +24,11 @@ const reviewsRouter = require("./routes/review.js");
 const userLoginRouter = require("./routes/user.js")
 
 // conecting  to mongoDB database
- const MONGO_URL = "mongodb://127.0.0.1:27017/wanderlust";
+ const DB_URL = process.env.ATLASDB_URL;
  async function main() {
   try {
-    await mongoose.connect(MONGO_URL);
-    console.log("Connected to DB");
+    await mongoose.connect(DB_URL);
+    console.log("Connected to DB")
   } catch (err) {
     console.log("DB Connection Error:", err.message);
     process.exit(1); // stop server if DB fails
@@ -46,18 +47,34 @@ app.use(methodOverride("_method")); //to use put/delete method coz html form can
 app.engine("ejs", ejsMate);
 app.use(express.static(path.join(__dirname,"/public")));
 
+const store = MongoStore.create({
+  mongoUrl: DB_URL,
+  crypto:{
+    secret: process.env.SECRET || "SecretKey",
+    
+  },
+  touchAfter: 24 * 3600
+});
+
+store.on("error", (err)=>{
+  console.log("ERROR IN MONGO SESSION STORE", err)
+})
+
 const sessionOptions = {
-  secret: "mysupersecretcode",
+  store,
+  secret: process.env.SECRET || "SecretKey",
   resave: false,
   saveUninitialized: true,
   cookie:{
     expires: Date.now() + 7 * 24 *60 * 60 * 1000, //one week
     maxAge: 7 * 24 *60 * 60 * 1000,
-    httpOnly: true
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production"
   }
 };
 
 app.use(session(sessionOptions));
+
 
 app.use(passport.initialize());
 app.use(passport.session()); 
@@ -92,8 +109,8 @@ app.use((err,req, res, next)=>{
     res.status(statusCode).render("error.ejs", {message})
 });
 
+const port = process.env.PORT || 8080;
 
-
-app.listen(8080, () =>{
-    console.log("Server is running at http://localhost:8080");
+app.listen(port, () =>{
+    console.log(`Server is running at ${port}`);
 });
