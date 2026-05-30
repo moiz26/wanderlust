@@ -64,7 +64,7 @@ const sessionOptions = {
   store,
   secret: process.env.SECRET || "SecretKey",
   resave: false,
-  saveUninitialized: true,
+  saveUninitialized: false,
   cookie:{
     expires: Date.now() + 7 * 24 *60 * 60 * 1000, //one week
     maxAge: 7 * 24 *60 * 60 * 1000,
@@ -73,6 +73,7 @@ const sessionOptions = {
   }
 };
 
+app.set("trust proxy", 1);
 app.use(session(sessionOptions));
 
 
